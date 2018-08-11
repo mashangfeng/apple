@@ -1,0 +1,15 @@
+cd android && gradlew.bat installRelease -Pversion_code=10999 -Pversion_name=2.4.0 -Pproduct_package=false -Pfile_name=qianniu-release-2.4.0.apk
+
+
+
+
+
+
+
+
+
+
+
+
+
+gradlew.bat clean
