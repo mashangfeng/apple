@@ -1,0 +1,162 @@
+import Vue from 'vue'
+import axios from 'axios'
+import VueAxios from 'vue-axios'
+import Qs from 'qs'
+import router from '../router'
+
+Vue.use(VueAxios, axios)
+
+axios.defaults.login = false
+axios.defaults.isBoss = true
+// 配置baseURL
+// axios.defaults.baseURL = API_ROOT
+axios.defaults.headers['Content-Type'] = 'application/json;charset=UTF-8'
+axios.defaults.headers['X-Requested-With'] = 'XMLHttpRequest'
+
+let tenantInstance = axios.create()
+// tenantInstance.defaults.headers['Tenant'] = localStorage.getItem('TENANT') || TENANT
+
+// POST传参序列化(添加请求拦截器)
+axios.interceptors.request.use((config) => {
+  if (config.params && config.params.Tenant) {
+    config.headers.Tenant = config.params.Tenant
+  } else {
+    config.headers.Tenant = localStorage.getItem('TENANT')
+  }
+  let auth = localStorage.getItem('AUTH_TOKEN')
+    if (auth) {
+        config.headers.common['Authorization'] = auth
+    }
+    return config
+}, (error) => {
+    return Promise.reject(error)
+})
+
+// 返回状态判断(添加响应拦截器)
+axios.interceptors.response.use((res) => {
+    // IE的兼容添加的，不可以读取未定义的属性
+    if (res.request.responseURL && res.request.responseURL.indexOf('oauth') > -1) {
+        return res
+    }
+    // IE的兼容添加的，不可以读取未定义的属性
+    if (res.request.responseType && res.request.responseType === 'blob') {
+        return res
+    }
+    // IE的兼容添加的，不可以读取未定义的属性
+    if (res.data.success && !res.data.success) {
+        return Promise.reject(res)
+    } else {
+        return res
+    }
+}, (error) => {
+
+    if (error.response && (error.response.data.error === 'invalid_token' || error.response.status == 401)) {
+        window.localStorage.removeItem('AUTH_TOKEN')
+        router.push('/login')
+    } else {
+        return Promise.reject(error)
+    }
+})
+
+// fetch 中转分发ajax类型
+function fetch(url, params, reqMode, download) {
+    let _axios = (params && params.tenant) ? tenantInstance : axios
+    return new Promise((resolve, reject) => {
+        switch (reqMode) {
+            case 'get':
+                _axios.get(url, {
+                    params: params
+                }).then(response => {
+                    resolve(response.data)
+                }).catch((error) => {
+                    reject(error)
+                });
+                break
+            case 'post':
+                _axios({
+                    method: 'post',
+                    url,
+                    data: params,
+                    responseType: download ? 'blob' : ''
+                }).then(response => {
+                    resolve(response.data)
+                }, err => {
+                    reject(err)
+                }).catch((error) => {
+                    reject(error)
+                });
+                break
+            case 'put':
+                _axios.put(url, params)
+                    .then(response => {
+                        resolve(response.data)
+                    }).catch((error) => {
+                        reject(error)
+                    });
+                break
+            case 'delete':
+                _axios.delete(url, {
+                    params: params
+                }).then(response => {
+                    resolve(response.data)
+                }).catch((error) => {
+                    reject(error)
+                });
+                break
+            case 'login':
+                params.grant_type = 'password'
+                // params.provider = ''
+                let paramStr = Qs.stringify(params)
+                _axios.post(url, paramStr, {
+                    auth: {
+                        username: 'qn-boss',
+                        password: 'qn-boss'
+                    },
+                    headers: {
+                       'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                      'Tenant': params.tenant
+                    }
+                }).then(
+
+                  (response) => { resolve(response.data); },
+                  (error) => {
+                      if (error.request.readyState == 4) {
+                        resolve();
+                      }
+                      reject(error);
+                  }
+                )
+                break;
+            default:
+                _axios.post(url, params)
+                    .then(response => {
+                        resolve(response.data)
+                    }, err => {
+                        reject(err)
+                    }).catch((error) => {
+                        reject(error)
+                    });
+                break
+        }
+    })
+}
+
+const ucenter = API_ROOT + 'ucenter/';
+const system = API_ROOT + 'system/api/';
+const qnboss = API_ROOT + 'qnboss/api/';
+const contract = API_ROOT + 'contract/api/';
+
+export let qnBossFetch = (path, params, type) => {
+    return fetch(qnboss + path, params, type)
+};
+
+export let systemFetch = (path, params, type) => {
+    return fetch(system + path, params, type)
+};
+
+export let ucenterFetch = (path, params, type) => {
+    return fetch(ucenter + path, params, type)
+};
+export let contractFetch = (path, params, type) => {
+  return fetch(contract + path, params, type)
+};
