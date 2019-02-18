@@ -1,0 +1,47 @@
+ie在使用falsh会提示未安装
+
+ navigator.plugins 判断是否安装falsh
+
+
+
+ios视频播放问题，直接ajax下载arrayBuffer, 在new blob， url.createObjectURl,直接播放
+
+
+BF cache, 缓存问题
+https://harttle.land/2017/03/12/backward-forward-cache.html
+window.onbeforeunload事件
+
+
+渲染   创建dom, 子上而下，som和dom，成为合成层，触发DOMcontentloaded,
+
+
+link   ref='preload' 预加载
+
+
+
+http转态码，300以上的重定向
+
+
+
+http缓存   cache-control: max-age=600 强缓存
+            304 协商缓存
+            etag   https://www.jianshu.com/p/a3ea9619c38d
+
+
+
+
+
+            vue 问题
+            keep-alive缓存，组件要有name,缓存的组件实例
+
+
+
+
+
+
+
+
+
+
+
+
