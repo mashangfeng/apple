@@ -17,7 +17,7 @@ let exports = window.adobeHdsHlsVideoSaver;
 
 exports.saveData = function (blob, fileName) {
   var a = document.createElement("a");
-  document.getElementById('hlsLinks').appendChild(a);
+  document.body.appendChild(a);
   a.style = "display: none";
   url = window.URL.createObjectURL(blob);
   a.href = url;
@@ -28,8 +28,7 @@ exports.saveData = function (blob, fileName) {
 };
 
 exports.downloadSlices = function(opt) {
-
-  updateHTML.clearProgressBars();
+  // updateHTML.clearProgressBars();
 
   const AUDIO_FILE_NAME = 'audio.aac';
   const VIDEO_FILE_NAME = 'video.ts';
@@ -42,7 +41,7 @@ exports.downloadSlices = function(opt) {
   var xhr = [];
   var mySlices = [];
 
-  updateHTML.clearProgressPanel();
+  // updateHTML.clearProgressPanel();
 
 
   callRemote(url, function(response) {
@@ -65,7 +64,7 @@ exports.downloadSlices = function(opt) {
       match = reg.exec(response);
     }
 
-    updateHTML.showProgressWindow(mySlices.length);
+    // updateHTML.showProgressWindow(mySlices.length);
 
     for (var i = 0; i < mySlices.length; i++) {
       downloadSlice(i);
@@ -76,7 +75,7 @@ exports.downloadSlices = function(opt) {
   function downloadSlice(i) {
     function handleErr(i) {
       const RETRY_LIMIT = 5;
-      updateHTML.errorProgressBar(i+1);
+      // updateHTML.errorProgressBar(i+1);
       if (retryCounts[i] > RETRY_LIMIT)
         return false;
       else {
@@ -98,7 +97,7 @@ exports.downloadSlices = function(opt) {
             if (handleErr(i))
               return;
           }
-          updateHTML.successProgressBar(i+1);
+          // updateHTML.successProgressBar(i+1);
           myBlobBuilder.append(xhr[i].response, i);
         } else {
           console.log(`Failed, ts index: ${i}, ts url ${mySlices[i]}`);
@@ -112,27 +111,65 @@ exports.downloadSlices = function(opt) {
           myBlobBuilder.sort();
           var bb = myBlobBuilder.getBlob("video/mp2t");
           // all done
-          updateHTML.displayAllDone();
-          //exports.saveData(bb, "video");
-          let file_name = type === 'audio' ? AUDIO_FILE_NAME : VIDEO_FILE_NAME;
-          download(bb, file_name);
+          // 第一种下载方式
+          exports.saveData(bb, "video");
+          // 第二种方式
+          // let file_name = type === 'audio' ? AUDIO_FILE_NAME : VIDEO_FILE_NAME;
+          // download(bb, file_name);
         }
       }
     };
     // update UI
     xhr[i].onprogress = function(e) {
-      updateHTML.initProgressBar(e.total, e.loaded, i+1);
+      // updateHTML.initProgressBar(e.total, e.loaded, i+1);
       xhr[i].total = e.total;
       xhr[i].loaded = e.loaded;
     };
     xhr[i].onloadstart = function(e) {
-      updateHTML.startProgressBar(e, i+1);
+      // updateHTML.startProgressBar(e, i+1);
       xhr[i].total = e.total;
     };
     xhr[i].onloadend = function(e) {
-      updateHTML.endProgressBar(e.loaded, i+1);
+      // updateHTML.endProgressBar(e.loaded, i+1);
     };
     xhr[i].responseType = "blob";
     xhr[i].send();
   }
+};
+
+
+
+
+
+const MyBlobBuilder = function() {
+  this.parts = [];
+  this.dict = {};
+};
+
+MyBlobBuilder.prototype.append = function(part, ind) {
+  this.dict[ind] = part;
+  this.blob = undefined;
+};
+
+MyBlobBuilder.prototype.getBlob = function(t) {
+  if (!this.blob) {
+    this.blob = new Blob(this.parts, { type: t });
+  }
+  return this.blob;
+};
+
+MyBlobBuilder.prototype.sort = function() {
+  var keys = Object.keys(this.dict);
+  keys.sort(function(a, b){return a-b});
+
+  for (var i=0; i < keys.length; i++) {
+    var key = keys[i];
+    this.parts.push(this.dict[key]);
+  }
+};
+
+MyBlobBuilder.prototype.iterate = function() {
+  this.parts.forEach(function(x){
+    console.log(x);
+  });
 };
