@@ -52,13 +52,15 @@ exports.downloadSlices = function(opt) {
     while(match != null) {
 
       var vidURL;
-      if (match[1].indexOf('http://') != -1 || match[1].indexOf('https://') != -1) {
-        vidURL = match[1];
-      }
-      else {
-        vidURL = url.substring(0, url.lastIndexOf('/')) + '/' + match[1];
-      }
 
+      // 有时候路径匹配问题，不规则
+      // if (match[1].indexOf('http://') != -1 || match[1].indexOf('https://') != -1) {
+      //   vidURL = match[1];
+      // }
+      // else {
+      //   vidURL = url.substring(0, url.lastIndexOf('/')) + '/' + match[1];
+      // }
+      vidURL = 'https://yj.yongjiu6.com' + match[1]
 
       mySlices.push(vidURL);
       match = reg.exec(response);
