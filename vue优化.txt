@@ -7,4 +7,5 @@ https://juejin.im/post/5b960fcae51d450e9d645c5f
 Object.freeze()
 使data的属性冻结，不会深度监听属性的变化，提高性能，也可以给在creted后给赋值
 
+
 少使用$parent,没有统一接口，不利于错误排查,在使用functional组件时需要多次parent
